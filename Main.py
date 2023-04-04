@@ -64,6 +64,10 @@ def main():
 
     # Регистрируем обработчик в приложении.
     application.add_handler(text_handler)
+    # Зарегистрируем их в приложении перед
+    # регистрацией обработчика текстовых сообщений.
+    # Первым параметром конструктора CommandHandler я
+    # вляется название команды.
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     # Запускаем приложение.
@@ -81,7 +85,4 @@ if __name__ == '__main__':
     main()
 
 
-# Зарегистрируем их в приложении перед
-# регистрацией обработчика текстовых сообщений.
-# Первым параметром конструктора CommandHandler я
-# вляется название команды.
+
