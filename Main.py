@@ -16,7 +16,7 @@ async def echo(update, context):
     # У message есть поле text, содержащее текст полученного сообщения,
     # а также метод reply_text(str),
     # отсылающий ответ пользователю, от которого получено сообщение.
-    await update.message.reply_text(update.message.text)
+    await update.message.reply_text("Пожалуйста подождите, когда будут добавлены команды.")
 
 
 # Запускаем логгирование
