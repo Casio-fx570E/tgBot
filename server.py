@@ -1,6 +1,7 @@
 from config import TOKEN
 import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
 )
@@ -43,12 +44,15 @@ async def start(update, context):
             f"Привет, {user.mention_html()}! Я telegram-бот, чтобы найти собеседника, наберите '/help', чтобы получить информацию обо мне"
         )
 
+
 async def help_command(update, context):
     language = update.effective_user.language_code
     if language == 'en':
         await update.message.reply_text("I'm helpless for now, but then there will be functions...")
     else:
-        await update.message.reply_text("Я, пока-что, беспомощный, но потом будут функции...")
+        await update.message.reply_text(
+            "Здравствуйте, я бот знакомств. Здесь вы можете найти себе знакомства, заполнив анкету."
+            "Для начала напишите /start")
 
 
 def main():
@@ -79,10 +83,6 @@ def main():
     # вляется название команды.
 
 
-
 # Запускаем функцию main() в случае запуска скрипта.
 if __name__ == '__main__':
     main()
-
-
-
