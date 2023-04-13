@@ -1,4 +1,4 @@
-from config import TOKEN
+from Сonfig import TOKEN
 import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler
 
