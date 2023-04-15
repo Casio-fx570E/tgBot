@@ -68,7 +68,7 @@ async def search(update, context):
         "Поиск друга.")
 
 
-reply_keyboard = ['/registration', '/search']
+reply_keyboard = [['/registration', '/search']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 
