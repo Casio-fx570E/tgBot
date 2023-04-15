@@ -13,14 +13,13 @@ logger = logging.getLogger(__name__)
 # Определяем функцию-обработчик сообщений.
 # У неё два параметра, updater, принявший сообщение и контекст - дополнительная информация о сообщении.
 
-
 # Запускаем логгирование
 
 
 # Определяем функцию-обработчик сообщений.
 # У неё два параметра, updater, принявший сообщение и контекст - дополнительная информация о сообщении.
-
-
+otvet1 = list()
+photo_list = []
 async def start(update, context):
     user = update.effective_user
     language = update.effective_user.language_code
@@ -58,6 +57,7 @@ async def first_response(update, context):
     # Это ответ на первый вопрос.
     # Мы можем использовать его во втором вопросе.
     city = update.message.text
+    otvet1.append(city)
     await update.message.reply_text(
         f"Сколько вам лет?")
     # Следующее текстовое сообщение будет обработано
@@ -65,29 +65,38 @@ async def first_response(update, context):
     return 2
 
 
-async def third_response(update, context):
+async def second_response(update, context):
     # Это ответ на второй вопрос.
     # Мы можем использовать его во втором вопросе.
     years = update.message.text
+    otvet1.append(years)
     await update.message.reply_text(
         f"Какие у вас увлечения?")
     # Следующее текстовое сообщение будет обработано
     # обработчиком states[2]
     return 3
 
+async def third_response(update, context):
+    hobbies = update.message.text
+    otvet1.append(hobbies)
+    await update.message.reply_text(
+        f"Загрузите своё фото.")
+    return 4
 
-async def second_response(update, context):
+
+async def four_response(update, context):
     # Ответ на третий вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
-    hobbies = update.message.text
-    await update.message.reply_text("Регистрация успешно пройдена!")
+    photo = update.message
+    photo_list.append(photo)
+    await update.message.reply_text(f"Регистрация успешно пройдена!")
     return ConversationHandler.END  # Константа, означающая конец диалога.
     # Все обработчики из states и fallbacks становятся неактивными.
 
 
 async def anketa(update, context):
     await update.message.reply_text(
-        "None",
+        ", ".join(otvet1),
         reply_markup=markup)
 
 
@@ -104,28 +113,11 @@ reply_keyboard = [['/registration', '/search'],
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
 
-conv_handler = ConversationHandler(
-    # Точка входа в диалог.
-    # В данном случае — команда /start. Она задаёт первый вопрос.
-    entry_points=[CommandHandler('registration', start)],
-
-    # Состояние внутри диалога.
-    # Вариант с двумя обработчиками, фильтрующими текстовые сообщения.
-    states={
-        # Функция читает ответ на первый вопрос и задаёт второй.
-        1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
-        2: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
-        # Функция читает ответ на второй вопрос и завершает диалог.
-        3: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)]
-    },
-    fallbacks=[CommandHandler('stop', second_response)]
-    # Точка прерывания диалога. В данном случае — команда /stop.
-)
 
 
 async def search(update, context):
     await update.message.reply_text(
-        "Поиск друга.")
+        "Поиск собеседника.")
 
 
 def main():
@@ -135,8 +127,9 @@ def main():
 
         states={
             1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
-            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
-            3: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)]
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)],
+            3: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
+            4: [MessageHandler(filters.TEXT & ~filters.COMMAND, four_response)]
         },
         fallbacks=[CommandHandler('stop', second_response)]
     )
