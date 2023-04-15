@@ -4,24 +4,11 @@ import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
 import sqlite3
 
-
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
 )
 
 logger = logging.getLogger(__name__)
-
-
-# Определяем функцию-обработчик сообщений.
-# У неё два параметра, updater, принявший сообщение и контекст - дополнительная информация о сообщении.
-async def echo(update, context):
-    # У объекта класса Updater есть поле message,
-    # являющееся объектом сообщения.
-    # У message есть поле text, содержащее текст полученного сообщения,
-    # а также метод reply_text(str),
-    # отсылающий ответ пользователю, от которого получено сообщение.
-    await update.message.reply_text("Пожалуйста подождите, когда будут добавлены команды.")
-
 
 # Запускаем логгирование
 logging.basicConfig(
@@ -166,10 +153,6 @@ def main():
     # После регистрации обработчика в приложении
     # эта асинхронная функция будет вызываться при получении сообщения
     # с типом "текст", т. е. текстовых сообщений.
-    text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
-
-    # Регистрируем обработчик в приложении.
-    application.add_handler(text_handler)
     # Зарегистрируем их в приложении перед
     # регистрацией обработчика текстовых сообщений.
     # Первым параметром конструктора CommandHandler я
