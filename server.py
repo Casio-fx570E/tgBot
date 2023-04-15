@@ -108,7 +108,7 @@ conv_handler = ConversationHandler(
         states={
             # Функция читает ответ на первый вопрос и задаёт второй.
             1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
-            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)]
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
             # Функция читает ответ на второй вопрос и завершает диалог.
             3: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)]
         },
