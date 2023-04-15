@@ -64,6 +64,7 @@ async def first_response(update, context):
     # обработчиком states[2]
     return 2
 
+
 async def third_response(update, context):
     # Это ответ на второй вопрос.
     # Мы можем использовать его во втором вопросе.
@@ -89,6 +90,7 @@ async def anketa(update, context):
         "None",
         reply_markup=markup)
 
+
 async def close(update, context):
     await update.message.reply_text(
         'Клавиатура скрыта',
@@ -103,57 +105,49 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
 
 conv_handler = ConversationHandler(
-        # Точка входа в диалог.
-        # В данном случае — команда /start. Она задаёт первый вопрос.
-        entry_points=[CommandHandler('registration', start)],
+    # Точка входа в диалог.
+    # В данном случае — команда /start. Она задаёт первый вопрос.
+    entry_points=[CommandHandler('registration', start)],
 
-        # Состояние внутри диалога.
-        # Вариант с двумя обработчиками, фильтрующими текстовые сообщения.
-        states={
-            # Функция читает ответ на первый вопрос и задаёт второй.
-            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
-            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
-            # Функция читает ответ на второй вопрос и завершает диалог.
-            3: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)]
-        },
-            fallbacks=[CommandHandler('stop', second_response)]
-        # Точка прерывания диалога. В данном случае — команда /stop.
-    )
+    # Состояние внутри диалога.
+    # Вариант с двумя обработчиками, фильтрующими текстовые сообщения.
+    states={
+        # Функция читает ответ на первый вопрос и задаёт второй.
+        1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
+        2: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
+        # Функция читает ответ на второй вопрос и завершает диалог.
+        3: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)]
+    },
+    fallbacks=[CommandHandler('stop', second_response)]
+    # Точка прерывания диалога. В данном случае — команда /stop.
+)
+
 
 async def search(update, context):
     await update.message.reply_text(
         "Поиск друга.")
 
+
 def main():
-    # Создаём объект Application.
     application = Application.builder().token(TOKEN).build()
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('registration', registration)],
 
-    # Создаём обработчик сообщений типа filters.TEXT
-    # из описанной выше асинхронной функции echo()
-    # После регистрации обработчика в приложении
-    # эта асинхронная функция будет вызываться при получении сообщения
-    # с типом "текст", т. е. текстовых сообщений.
-
-    # Зарегистрируем их в приложении перед
-    # регистрацией обработчика текстовых сообщений.
-    # Первым параметром конструктора CommandHandler я
-    # вляется название команды.
+        states={
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
+            3: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)]
+        },
+        fallbacks=[CommandHandler('stop', second_response)]
+    )
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("registration", registration))
     application.add_handler(CommandHandler("search", search))
     application.add_handler(CommandHandler("anketa", anketa))
     application.add_handler(CommandHandler("close", close))
     application.add_handler(conv_handler)
-    # Запускаем приложение.
     application.run_polling()
 
-    # Зарегистрируем их в приложении перед
-    # регистрацией обработчика текстовых сообщений.
-    # Первым параметром конструктора CommandHandler я
-    # вляется название команды.
 
-
-# Запускаем функцию main() в случае запуска скрипта.
 if __name__ == '__main__':
     main()
