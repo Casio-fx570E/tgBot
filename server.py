@@ -104,23 +104,6 @@ reply_keyboard = [['/registration', '/search'],
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
 
-conv_handler = ConversationHandler(
-    # Точка входа в диалог.
-    # В данном случае — команда /start. Она задаёт первый вопрос.
-    entry_points=[CommandHandler('registration', start)],
-
-    # Состояние внутри диалога.
-    # Вариант с двумя обработчиками, фильтрующими текстовые сообщения.
-    states={
-        # Функция читает ответ на первый вопрос и задаёт второй.
-        1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
-        2: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
-        # Функция читает ответ на второй вопрос и завершает диалог.
-        3: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)]
-    },
-    fallbacks=[CommandHandler('stop', second_response)]
-    # Точка прерывания диалога. В данном случае — команда /stop.
-)
 
 
 async def search(update, context):
