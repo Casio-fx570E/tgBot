@@ -1,7 +1,9 @@
 from сonfig import TOKEN
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, User
 import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
+import sqlite3
+
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -36,6 +38,10 @@ logger = logging.getLogger(__name__)
 async def start(update, context):
     user = update.effective_user
     language = update.effective_user.language_code
+    con = sqlite3.connect('tg-bot.db')
+    cur = con.cursor()
+    result = f"INSERT INTO user_id value {user}"
+    res = cur.execute(result).fetchall()
     if language == 'en':
         await update.message.reply_html(
             f"Hi, {user.mention_html()}! I'm a telegram bot to find someone to talk to, click 'help' to get information about me",
@@ -45,6 +51,7 @@ async def start(update, context):
         await update.message.reply_html(
             f"Привет, {user.mention_html()}! Я telegram-бот, чтобы найти собеседника, наберите '/help', чтобы получить информацию обо мне",
             reply_markup=markup
+
         )
 
 
@@ -73,7 +80,10 @@ async def name_response(update, context):
     # Это ответ на первый вопрос.
     # Мы можем использовать его во втором вопросе.
     name = update.message.text
-    logger.info(name)
+    con = sqlite3.connect('tg-bot.db')
+    cur = con.cursor()
+    result = f"INSERT INTO name value {name}"
+    res = cur.execute(result).fetchall()
     await update.message.reply_text(
         f"Сколько вам лет?")
     # Следующее текстовое сообщение будет обработано
@@ -85,7 +95,10 @@ async def age_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     age = update.message.text
-    logger.info(age)
+    con = sqlite3.connect('tg-bot.db')
+    cur = con.cursor()
+    result = f"INSERT INTO age value {age}"
+    res = cur.execute(result).fetchall()
     await update.message.reply_text("Из какого вы города?")
     return 3  # Константа, означающая конец диалога.
     # Все обработчики из states и fallbacks становятся неактивными.
@@ -95,7 +108,10 @@ async def city_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     city = update.message.text
-    logger.info(city)
+    con = sqlite3.connect('tg-bot.db')
+    cur = con.cursor()
+    result = f"INSERT INTO city value {city}"
+    res = cur.execute(result).fetchall()
     await update.message.reply_text("Пожалуйста, расскажите о себе и о том кого вы здесь ищите")
     return 4  # Константа, означающая конец диалога.
 
@@ -104,7 +120,10 @@ async def info_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     info = update.message.text
-    logger.info(info)
+    con = sqlite3.connect('tg-bot.db')
+    cur = con.cursor()
+    result = f"INSERT INTO info value {info}"
+    res = cur.execute(result).fetchall()
     await update.message.reply_text("Спасибо за регистрацию, теперь вы можете искать собеседника!")
     return ConversationHandler.END
 
