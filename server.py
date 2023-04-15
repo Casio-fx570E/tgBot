@@ -93,10 +93,10 @@ async def third_response(update, context):
 async def four_response(update, context):
     # Ответ на третий вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
-    # file = update.message.photo[0].file_id
-    # obj = context.bot.get_file(file)
-    # obj.download("Users/User/PycharmProjects/tgBot/photo/photos.jpg")
-    # photo_list.append(photo)
+    file = update.message.photo[-1].file_id
+    # obj = context.get_file(file)
+    # obj.download()
+    otvet1.append(file)
     await update.message.reply_text(f"Регистрация успешно пройдена!")
     return ConversationHandler.END  # Константа, означающая конец диалога.
     # Все обработчики из states и fallbacks становятся неактивными.
@@ -152,4 +152,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
