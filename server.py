@@ -1,4 +1,5 @@
-from Сonfig import TOKEN
+from Config import TOKEN
+from telegram import ReplyKeyboardMarkup
 import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler
 
@@ -37,11 +38,13 @@ async def start(update, context):
     language = update.effective_user.language_code
     if language == 'en':
         await update.message.reply_html(
-            f"Hi, {user.mention_html()}! I'm a telegram bot to find someone to talk to, click 'help' to get information about me"
+            f"Hi, {user.mention_html()}! I'm a telegram bot to find someone to talk to, click 'help' to get information about me",
+            reply_markup=markup
         )
     else:
         await update.message.reply_html(
-            f"Привет, {user.mention_html()}! Я telegram-бот, чтобы найти собеседника, наберите '/help', чтобы получить информацию обо мне"
+            f"Привет, {user.mention_html()}! Я telegram-бот, чтобы найти собеседника, наберите '/help', чтобы получить информацию обо мне",
+            reply_markup=markup
         )
 
 
@@ -54,6 +57,16 @@ async def help_command(update, context):
             "Здравствуйте, я бот знакомств. Здесь вы можете найти себе знакомства, заполнив анкету."
             "Для начала напишите /start")
 
+async def registration(update, context):
+    await update.message.reply_text(
+        "Регистрация.")
+
+async def search(update, context):
+    await update.message.reply_text(
+        "Поиск друга.")
+
+reply_keyboard = ['/registration', '/search']
+markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 def main():
     # Создаём объект Application.
