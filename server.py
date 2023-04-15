@@ -40,7 +40,7 @@ async def start(update, context):
     language = update.effective_user.language_code
     con = sqlite3.connect('tg-bot.db')
     cur = con.cursor()
-    result = f"INSERT INTO user_id value {user}"
+    result = f"INSERT INTO user value {user}"
     res = cur.execute(result).fetchall()
     if language == 'en':
         await update.message.reply_html(
