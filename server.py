@@ -1,4 +1,4 @@
-from Config import TOKEN
+from сonfig import TOKEN
 from telegram import ReplyKeyboardMarkup
 import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler
@@ -57,16 +57,20 @@ async def help_command(update, context):
             "Здравствуйте, я бот знакомств. Здесь вы можете найти себе знакомства, заполнив анкету."
             "Для начала напишите /start")
 
+
 async def registration(update, context):
     await update.message.reply_text(
         "Регистрация.")
+
 
 async def search(update, context):
     await update.message.reply_text(
         "Поиск друга.")
 
+
 reply_keyboard = ['/registration', '/search']
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
+
 
 def main():
     # Создаём объект Application.
