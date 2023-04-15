@@ -104,7 +104,7 @@ async def close(update, context):
 
 
 btn1 = "Регистрация 🧩"
-reply_keyboard = [[btn1, '/search'],
+reply_keyboard = [['/registration', '/search'],
                   ['/anketa', '/help']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
@@ -123,7 +123,7 @@ conv_handler = ConversationHandler(
             # Функция читает ответ на второй вопрос и завершает диалог.
             3: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)]
         },
-
+            fallbacks=[CommandHandler('stop', second_response)]
         # Точка прерывания диалога. В данном случае — команда /stop.
     )
 
@@ -141,6 +141,7 @@ def main():
     # эта асинхронная функция будет вызываться при получении сообщения
     # с типом "текст", т. е. текстовых сообщений.
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
+    text_handler = MessageHandler(filters.TEXT & ~filters.TEXT, echo)
 
     # Регистрируем обработчик в приложении.
     application.add_handler(text_handler)
@@ -154,6 +155,7 @@ def main():
     application.add_handler(CommandHandler("search", search))
     application.add_handler(CommandHandler("anketa", anketa))
     application.add_handler(CommandHandler("close", close))
+    application.add_handler(conv_handler)
     # Запускаем приложение.
     application.run_polling()
 
