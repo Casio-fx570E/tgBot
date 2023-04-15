@@ -54,8 +54,10 @@ async def registration(update, context):
 
 async def name_response(update, context):
     # Это ответ на первый вопрос.
+    name = update.message.text
+    logger.info(name)
     await update.message.reply_text(
-        f"Сколько вам лет?")
+        "Сколько вам лет?")
     # Следующее текстовое сообщение будет обработано
     # обработчиком states[2]
     return 2
@@ -65,6 +67,7 @@ async def age_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     age = update.message.text
+    logger.info(age)
     await update.message.reply_text("Из какого вы города?")
     return 3  # Константа, означающая конец диалога.
     # Все обработчики из states и fallbacks становятся неактивными.
@@ -74,6 +77,7 @@ async def city_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     city = update.message.text
+    logger.info(city)
     await update.message.reply_text("Пожалуйста, расскажите о себе и о том кого вы здесь ищите")
     return 4  # Константа, означающая конец диалога.
 
@@ -82,6 +86,7 @@ async def info_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     info = update.message.text
+    logger.info(info)
     await update.message.reply_text("Спасибо за регистрацию, теперь вы можете искать собеседника!")
     return ConversationHandler.END
 
