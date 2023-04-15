@@ -1,5 +1,5 @@
 from Сonfig import TOKEN
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler
 
@@ -22,11 +22,6 @@ async def echo(update, context):
 
 
 # Запускаем логгирование
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
-)
-
-logger = logging.getLogger(__name__)
 
 
 # Определяем функцию-обработчик сообщений.
@@ -41,7 +36,7 @@ async def start(update, context):
             f"Hi, {user.mention_html()}! I'm a telegram bot to find someone to talk to, click 'help' to get information about me",
             reply_markup=markup
         )
-    else:
+    if language == 'ru':
         await update.message.reply_html(
             f"Привет, {user.mention_html()}! Я telegram-бот, чтобы найти собеседника, наберите '/help', чтобы получить информацию обо мне",
             reply_markup=markup
@@ -55,7 +50,8 @@ async def help_command(update, context):
     else:
         await update.message.reply_text(
             "Здравствуйте, я бот знакомств. Здесь вы можете найти себе знакомства, заполнив анкету."
-            "Для начала напишите /start")
+            "Для начала напишите /registration, если вы захотите убрать кнопки напишите - /close",
+            reply_markup=markup)
 
 
 async def registration(update, context):
@@ -68,8 +64,23 @@ async def search(update, context):
         "Поиск друга.")
 
 
-reply_keyboard = [['/registration', '/search']]
+async def anketa(update, context):
+    await update.message.reply_text(
+        "None",
+        reply_markup=markup)
+
+async def close(update, context):
+    await update.message.reply_text(
+        'Клавиатура скрыта',
+        reply_markup=markdown
+    )
+
+
+btn1 = "Регистрация 🧩"
+reply_keyboard = [[btn1, '/search'],
+                  ['/anketa', '/help']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
+markdown = ReplyKeyboardRemove()
 
 
 def main():
@@ -93,6 +104,8 @@ def main():
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("registration", registration))
     application.add_handler(CommandHandler("search", search))
+    application.add_handler(CommandHandler("anketa", anketa))
+    application.add_handler(CommandHandler("close", close))
     # Запускаем приложение.
     application.run_polling()
 
