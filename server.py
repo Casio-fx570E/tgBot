@@ -1,7 +1,7 @@
 from сonfig import TOKEN
 from telegram import ReplyKeyboardMarkup
 import logging
-from telegram.ext import Application, MessageHandler, filters, CommandHandler
+from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -60,7 +60,8 @@ async def help_command(update, context):
 
 async def registration(update, context):
     await update.message.reply_text(
-        "Регистрация.")
+        "Введите ваше имя")
+    return 1
 
 
 async def search(update, context):
@@ -68,8 +69,73 @@ async def search(update, context):
         "Поиск друга.")
 
 
+async def name_response(update, context):
+    # Это ответ на первый вопрос.
+    # Мы можем использовать его во втором вопросе.
+    name = update.message.text
+    logger.info(name)
+    await update.message.reply_text(
+        f"Сколько вам лет?")
+    # Следующее текстовое сообщение будет обработано
+    # обработчиком states[2]
+    return 2
+
+
+async def age_response(update, context):
+    # Ответ на второй вопрос.
+    # Мы можем его сохранить в базе данных или переслать куда-либо.
+    age = update.message.text
+    logger.info(age)
+    await update.message.reply_text("Из какого вы города?")
+    return 3  # Константа, означающая конец диалога.
+    # Все обработчики из states и fallbacks становятся неактивными.
+
+
+async def city_response(update, context):
+    # Ответ на второй вопрос.
+    # Мы можем его сохранить в базе данных или переслать куда-либо.
+    city = update.message.text
+    logger.info(city)
+    await update.message.reply_text("Пожалуйста, расскажите о себе и о том кого вы здесь ищите")
+    return 4  # Константа, означающая конец диалога.
+
+
+async def info_response(update, context):
+    # Ответ на второй вопрос.
+    # Мы можем его сохранить в базе данных или переслать куда-либо.
+    info = update.message.text
+    logger.info(info)
+    await update.message.reply_text("Спасибо за регистрацию, теперь вы можете искать собеседника!")
+    return ConversationHandler.END
+
+
+async def stop(update, context):
+    await update.message.reply_text("Всего доброго!")
+    return ConversationHandler.END
+
+
 reply_keyboard = [['/registration', '/search']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
+
+conv_handler = ConversationHandler(
+    # Точка входа в диалог.
+    # В данном случае — команда /start. Она задаёт первый вопрос.
+    entry_points=[CommandHandler('registration', registration)],
+
+    # Состояние внутри диалога.
+    # Вариант с двумя обработчиками, фильтрующими текстовые сообщения.
+    states={
+        # Функция читает ответ на первый вопрос и задаёт второй.
+        1: [MessageHandler(filters.TEXT & ~filters.COMMAND, name_response)],
+        # Функция читает ответ на второй вопрос и завершает диалог.
+        2: [MessageHandler(filters.TEXT & ~filters.COMMAND, age_response)],
+        3: [MessageHandler(filters.TEXT & ~filters.COMMAND, city_response)],
+        4: [MessageHandler(filters.TEXT & ~filters.COMMAND, city_response)]
+    },
+
+    # Точка прерывания диалога. В данном случае — команда /stop.
+    fallbacks=[CommandHandler('stop', stop)]
+)
 
 
 def main():
@@ -93,6 +159,7 @@ def main():
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("registration", registration))
     application.add_handler(CommandHandler("search", search))
+    application.add_handler(conv_handler)
     # Запускаем приложение.
     application.run_polling()
 
