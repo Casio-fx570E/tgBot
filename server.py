@@ -10,13 +10,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Запускаем логгирование
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
-)
-
-logger = logging.getLogger(__name__)
-
 
 # Определяем функцию-обработчик сообщений.
 # У неё два параметра, updater, принявший сообщение и контекст - дополнительная информация о сообщении.
@@ -25,7 +18,7 @@ logger = logging.getLogger(__name__)
 async def start(update, context):
     user = update.effective_user
     language = update.effective_user.language_code
-    con = sqlite3.connect('tg-bot.db')
+    con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
     result = f"INSERT INTO user value {user}"
     res = cur.execute(result).fetchall()
@@ -52,22 +45,23 @@ async def help_command(update, context):
             "Для начала напишите /start")
 
 
-async def registration(update, context):
-    await update.message.reply_text(
-        "Введите ваше имя")
-    return 1
-
-
 async def search(update, context):
     await update.message.reply_text(
         "Поиск друга.")
+
+
+async def registration(update, context):
+    await update.message.reply_text(
+        "Введите ваше имя")
+
+    return 1
 
 
 async def name_response(update, context):
     # Это ответ на первый вопрос.
     # Мы можем использовать его во втором вопросе.
     name = update.message.text
-    con = sqlite3.connect('tg-bot.db')
+    con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
     result = f"INSERT INTO name value {name}"
     res = cur.execute(result).fetchall()
@@ -82,7 +76,7 @@ async def age_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     age = update.message.text
-    con = sqlite3.connect('tg-bot.db')
+    con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
     result = f"INSERT INTO age value {age}"
     res = cur.execute(result).fetchall()
@@ -95,7 +89,7 @@ async def city_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     city = update.message.text
-    con = sqlite3.connect('tg-bot.db')
+    con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
     result = f"INSERT INTO city value {city}"
     res = cur.execute(result).fetchall()
@@ -107,7 +101,7 @@ async def info_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     info = update.message.text
-    con = sqlite3.connect('tg-bot.db')
+    con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
     result = f"INSERT INTO info value {info}"
     res = cur.execute(result).fetchall()
@@ -128,12 +122,8 @@ conv_handler = ConversationHandler(
     # В данном случае — команда /start. Она задаёт первый вопрос.
     entry_points=[CommandHandler('registration', registration)],
 
-    # Состояние внутри диалога.
-    # Вариант с двумя обработчиками, фильтрующими текстовые сообщения.
     states={
-        # Функция читает ответ на первый вопрос и задаёт второй.
         1: [MessageHandler(filters.TEXT & ~filters.COMMAND, name_response)],
-        # Функция читает ответ на второй вопрос и завершает диалог.
         2: [MessageHandler(filters.TEXT & ~filters.COMMAND, age_response)],
         3: [MessageHandler(filters.TEXT & ~filters.COMMAND, city_response)],
         4: [MessageHandler(filters.TEXT & ~filters.COMMAND, city_response)]
@@ -159,9 +149,9 @@ def main():
     # вляется название команды.
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(conv_handler)
     application.add_handler(CommandHandler("registration", registration))
     application.add_handler(CommandHandler("search", search))
-    application.add_handler(conv_handler)
     # Запускаем приложение.
     application.run_polling()
 
