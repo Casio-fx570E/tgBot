@@ -1,7 +1,7 @@
 from Сonfig import TOKEN
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 import logging
-from telegram.ext import Application, MessageHandler, filters, CommandHandler
+from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -56,12 +56,39 @@ async def help_command(update, context):
 
 async def registration(update, context):
     await update.message.reply_text(
-        "Регистрация.")
+        "В каком городе вы живёте?")
+
+    return 1
 
 
-async def search(update, context):
+async def first_response(update, context):
+    # Это ответ на первый вопрос.
+    # Мы можем использовать его во втором вопросе.
+    city = update.message.text
     await update.message.reply_text(
-        "Поиск друга.")
+        f"Сколько вам лет?")
+    # Следующее текстовое сообщение будет обработано
+    # обработчиком states[2]
+    return 2
+
+async def third_response(update, context):
+    # Это ответ на второй вопрос.
+    # Мы можем использовать его во втором вопросе.
+    years = update.message.text
+    await update.message.reply_text(
+        f"Какие у вас увлечения?")
+    # Следующее текстовое сообщение будет обработано
+    # обработчиком states[2]
+    return 3
+
+
+async def second_response(update, context):
+    # Ответ на третий вопрос.
+    # Мы можем его сохранить в базе данных или переслать куда-либо.
+    hobbies = update.message.text
+    await update.message.reply_text("Регистрация успешно пройдена!")
+    return ConversationHandler.END  # Константа, означающая конец диалога.
+    # Все обработчики из states и fallbacks становятся неактивными.
 
 
 async def anketa(update, context):
@@ -82,6 +109,27 @@ reply_keyboard = [[btn1, '/search'],
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
 
+conv_handler = ConversationHandler(
+        # Точка входа в диалог.
+        # В данном случае — команда /start. Она задаёт первый вопрос.
+        entry_points=[CommandHandler('registration', start)],
+
+        # Состояние внутри диалога.
+        # Вариант с двумя обработчиками, фильтрующими текстовые сообщения.
+        states={
+            # Функция читает ответ на первый вопрос и задаёт второй.
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
+            # Функция читает ответ на второй вопрос и завершает диалог.
+            3: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)]
+        },
+
+        # Точка прерывания диалога. В данном случае — команда /stop.
+    )
+
+async def search(update, context):
+    await update.message.reply_text(
+        "Поиск друга.")
 
 def main():
     # Создаём объект Application.
