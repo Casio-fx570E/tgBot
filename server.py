@@ -1,7 +1,9 @@
 from Сonfig import TOKEN
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 import logging
-from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
+import telegram
+from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler, Updater
+import wget
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -45,6 +47,10 @@ async def help_command(update, context):
             "Для начала напишите /registration, если вы захотите убрать кнопки напишите - /close",
             reply_markup=markup)
 
+# def image_handler(update, context):
+#     file = update.message.photo[0].file_id
+#     obj = context.bot.get_file(file)
+#     obj.download()
 
 async def registration(update, context):
     await update.message.reply_text(
@@ -87,8 +93,10 @@ async def third_response(update, context):
 async def four_response(update, context):
     # Ответ на третий вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
-    photo = update.message
-    photo_list.append(photo)
+    # file = update.message.photo[0].file_id
+    # obj = context.bot.get_file(file)
+    # obj.download("Users/User/PycharmProjects/tgBot/photo/photos.jpg")
+    # photo_list.append(photo)
     await update.message.reply_text(f"Регистрация успешно пройдена!")
     return ConversationHandler.END  # Константа, означающая конец диалога.
     # Все обработчики из states и fallbacks становятся неактивными.
@@ -131,7 +139,7 @@ def main():
             3: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
             4: [MessageHandler(filters.TEXT & ~filters.COMMAND, four_response)]
         },
-        fallbacks=[CommandHandler('stop', second_response)]
+        fallbacks=[CommandHandler('stop', four_response)]
     )
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
@@ -144,3 +152,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
