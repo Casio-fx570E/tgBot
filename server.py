@@ -91,6 +91,8 @@ def main():
     # вляется название команды.
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("registration", registration))
+    application.add_handler(CommandHandler("search", search))
     # Запускаем приложение.
     application.run_polling()
 
