@@ -20,7 +20,7 @@ async def start(update, context):
     language = update.effective_user.language_code
     con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
-    result = f"INSERT INTO user value {user}"
+    result = "INSERT INTO Profile(user) VALUES('" + user + "')"
     res = cur.execute(result).fetchall()
     if language == 'en':
         await update.message.reply_html(
@@ -63,7 +63,7 @@ async def name_response(update, context):
     name = update.message.text
     con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
-    result = f"INSERT INTO name value {name}"
+    result = "INSERT INTO Profile(name) VALUES('" + name + "')"
     res = cur.execute(result).fetchall()
     await update.message.reply_text(
         f"Сколько вам лет?")
@@ -78,7 +78,7 @@ async def age_response(update, context):
     age = update.message.text
     con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
-    result = f"INSERT INTO age value {age}"
+    result = "INSERT INTO Profile(age) VALUES('" + age + "')"
     res = cur.execute(result).fetchall()
     await update.message.reply_text("Из какого вы города?")
     return 3  # Константа, означающая конец диалога.
@@ -91,7 +91,7 @@ async def city_response(update, context):
     city = update.message.text
     con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
-    result = f"INSERT INTO city value {city}"
+    result = "INSERT INTO Profile(city) VALUES('" + city + "')"
     res = cur.execute(result).fetchall()
     await update.message.reply_text("Пожалуйста, расскажите о себе и о том кого вы здесь ищите")
     return 4  # Константа, означающая конец диалога.
@@ -103,7 +103,7 @@ async def info_response(update, context):
     info = update.message.text
     con = sqlite3.connect('Tg-bot-DB.db')
     cur = con.cursor()
-    result = f"INSERT INTO info value {info}"
+    result = "INSERT INTO Profile(info) VALUES('" + info + "')"
     res = cur.execute(result).fetchall()
     await update.message.reply_text("Спасибо за регистрацию, теперь вы можете искать собеседника!")
     return ConversationHandler.END
@@ -149,9 +149,9 @@ def main():
     # вляется название команды.
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(conv_handler)
     application.add_handler(CommandHandler("registration", registration))
     application.add_handler(CommandHandler("search", search))
+    application.add_handler(conv_handler)
     # Запускаем приложение.
     application.run_polling()
 
