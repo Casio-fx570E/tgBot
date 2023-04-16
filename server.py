@@ -192,9 +192,21 @@ async def anketa(update, context):
 
 async def close(update, context):
     await update.message.reply_text(
-        'Клавиатура скрыта',
+        'Клавиатура скрыта ⬇️',
         reply_markup=markdown
     )
+
+
+async def open(update, context):
+    await update.message.reply_text(
+        'Клавиатура открыта ⬆️',
+        reply_markup=markup
+    )
+
+
+async def search(update, context):
+    await update.message.reply_text(
+        "Поиск собеседника.")
 
 
 btn1 = "Регистрация 🧩"
@@ -204,9 +216,6 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
 
 
-async def search(update, context):
-    await update.message.reply_text(
-        "Поиск собеседника.")
 
 
 def main():
@@ -227,6 +236,7 @@ def main():
     application.add_handler(CommandHandler("search", search))
     application.add_handler(CommandHandler("anketa", anketa))
     application.add_handler(CommandHandler("close", close))
+    application.add_handler(CommandHandler("open", open))
     application.add_handler(conv_handler)
     application.run_polling()
 
