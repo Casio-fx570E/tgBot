@@ -137,7 +137,7 @@ async def second_response(update, context):
     years = update.message.text
     to_DB(str(years), 'age', str(user))
     await update.message.reply_text(
-        f"Какие у вас увлечения?")
+        f"Пожалуйста, напишите что-нибудь о себе(увлечения, хобби, интересы и др.).")
     # Следующее текстовое сообщение будет обработано
     # обработчиком states[2]
     return 3
