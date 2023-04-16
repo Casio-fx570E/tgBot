@@ -173,9 +173,21 @@ async def fifth_response(update, context):
 
 
 async def anketa(update, context):
-    await update.message.reply_text(
-        ", ".join(otvet1),
-        reply_markup=markup)
+    id = update.effective_chat.id
+    connect = sqlite3.connect('Tg-bot-DB.db')
+    cur = connect.cursor()
+    res = f"""SELECT * FROM Profile " \
+           f"WHERE user = {id}"""
+    resultat = cur.execute(res).fetchall()
+    # age = "".join(str(resultat[1]))
+    for elem in resultat:
+        await update.message.reply_text(
+            f'Ваше имя: {elem[1]} 👑 \n'
+            f'Ваш возраст: {elem[2]} 🌸 \n'
+            f'Ваш город: {elem[3]} 🌇 \n'
+            f'Ваше хобби: {elem[4]} 🪃 \n'
+            f'Желаете что-то изменить?',
+            reply_markup=markup)
 
 
 async def close(update, context):
