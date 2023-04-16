@@ -1,16 +1,15 @@
 from Сonfig import TOKEN
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 import logging
-import telegram
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler, Updater
-import wget
+# import wget
+import sqlite3
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
 )
 
 logger = logging.getLogger(__name__)
-
 
 # Определяем функцию-обработчик сообщений.
 # У неё два параметра, updater, принявший сообщение и контекст - дополнительная информация о сообщении.
@@ -22,6 +21,43 @@ logger = logging.getLogger(__name__)
 # У неё два параметра, updater, принявший сообщение и контекст - дополнительная информация о сообщении.
 otvet1 = list()
 photo_list = []
+
+
+# to_DB для добавления в баззу данных
+# name то значение
+# what_to_add это то что добавляется(возраст город имя и информация)
+# user пользователь у которого меняются значения в бд
+def to_DB(name, what_to_add, user):
+    if what_to_add == 'city':
+        con = sqlite3.connect('Tg-bot-DB.db')
+        cur = con.cursor()
+        result = "UPDATE Profile SET city = '" + name + "' WHERE user =" + user
+        res = cur.execute(result)
+        con.commit()
+        con.close()
+    elif what_to_add == 'age':
+        con = sqlite3.connect('Tg-bot-DB.db')
+        cur = con.cursor()
+        result = "UPDATE Profile SET age = '" + name + "' WHERE user =" + user
+        res = cur.execute(result)
+        con.commit()
+        con.close()
+    elif what_to_add == 'info':
+        con = sqlite3.connect('Tg-bot-DB.db')
+        cur = con.cursor()
+        result = "UPDATE Profile SET info = '" + name + "' WHERE user =" + user
+        res = cur.execute(result)
+        con.commit()
+        con.close()
+    elif what_to_add == 'name':
+        con = sqlite3.connect('Tg-bot-DB.db')
+        cur = con.cursor()
+        result = "UPDATE Profile SET name = '" + name + "' WHERE user =" + user
+        res = cur.execute(result)
+        con.commit()
+        con.close()
+
+
 async def start(update, context):
     user = update.effective_user
     language = update.effective_user.language_code
@@ -47,12 +83,34 @@ async def help_command(update, context):
             "Для начала напишите /registration, если вы захотите убрать кнопки напишите - /close",
             reply_markup=markup)
 
+
 # def image_handler(update, context):
 #     file = update.message.photo[0].file_id
 #     obj = context.bot.get_file(file)
 #     obj.download()
 
 async def registration(update, context):
+    flag = False
+    user = update.effective_chat.id
+    con = sqlite3.connect('Tg-bot-DB.db')
+    cur = con.cursor()
+    result = "SELECT user FROM Profile"
+    res = cur.execute(result).fetchall()
+    print(user)
+    print(res)
+    print(user not in res[0])
+    for i in range(len(res)):
+        if user in res[i]:
+            print(res[i])
+            print(user in res[i])
+            flag = True
+    if flag is False:
+        con = sqlite3.connect('Tg-bot-DB.db')
+        cur = con.cursor()
+        result = f"INSERT INTO Profile(user) VALUES({user})"
+        res = cur.execute(result)
+        con.commit()
+    con.close()
     await update.message.reply_text(
         "В каком городе вы живёте?")
 
@@ -63,7 +121,8 @@ async def first_response(update, context):
     # Это ответ на первый вопрос.
     # Мы можем использовать его во втором вопросе.
     city = update.message.text
-    otvet1.append(city)
+    user = update.effective_chat.id
+    to_DB(str(city), 'city', str(user))
     await update.message.reply_text(
         f"Сколько вам лет?")
     # Следующее текстовое сообщение будет обработано
@@ -74,23 +133,34 @@ async def first_response(update, context):
 async def second_response(update, context):
     # Это ответ на второй вопрос.
     # Мы можем использовать его во втором вопросе.
+    user = update.effective_chat.id
     years = update.message.text
-    otvet1.append(years)
+    to_DB(str(years), 'age', str(user))
     await update.message.reply_text(
         f"Какие у вас увлечения?")
     # Следующее текстовое сообщение будет обработано
     # обработчиком states[2]
     return 3
 
+
 async def third_response(update, context):
     hobbies = update.message.text
-    otvet1.append(hobbies)
+    user = update.effective_chat.id
+    to_DB(str(hobbies), 'info', str(user))
     await update.message.reply_text(
-        f"Загрузите своё фото.")
+        "Назовите своё настоящее имя")
     return 4
 
 
-async def four_response(update, context):
+async def fourth_response(update, context):
+    name = update.message.text
+    user = update.effective_chat.id
+    to_DB(str(name), 'name', str(user))
+    await update.message.reply_text(f"Регистрация успешно пройдена!")
+    return ConversationHandler.END
+
+
+async def fifth_response(update, context):
     # Ответ на третий вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     file = update.message.photo[-1].file_id
@@ -122,7 +192,6 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
 
 
-
 async def search(update, context):
     await update.message.reply_text(
         "Поиск собеседника.")
@@ -137,9 +206,9 @@ def main():
             1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
             2: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)],
             3: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
-            4: [MessageHandler(filters.TEXT & ~filters.COMMAND, four_response)]
+            4: [MessageHandler(filters.TEXT & ~filters.COMMAND, fourth_response)]
         },
-        fallbacks=[CommandHandler('stop', four_response)]
+        fallbacks=[CommandHandler('stop', fourth_response)]
     )
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
