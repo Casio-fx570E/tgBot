@@ -109,7 +109,7 @@ async def registration_from_vk(update, context):
         res = cur.execute(result)
         con.commit()
     await update.message.reply_text(
-        "Пожалуйста, напишите свой id профиля во 'Вконтакте'.(Всё, что после https://vk.com/...)")
+        "Пожалуйста, напишите свой id профиля во 'Вконтакте'.Не забудьте открыть его!(Всё, что после vk.com/...)")
     return 'vk'
 
 
@@ -121,9 +121,24 @@ async def vk_id_response(update, context):
     vk = vk_api.VkApi(token=VK_TOKEN)
     user = vk.method("users.get", {"user_ids": vk_id})  # вместо 1 подставляете айди нужного юзера
     fullname = user[0]['first_name'] + ' ' + user[0]['last_name']
+    user_city = vk.method("users.get", {"fields": {"city": vk_id}})
+    city = user_city[0]['city']['title']
+    user_bdate = vk.method('users.get', {"fields": {"bdate": vk_id}})
+    age = 2023 - int(str(user_bdate[0]['bdate']).split('.')[2])
     to_DB(str(fullname), 'name', str(user_tg))
+    to_DB(str(city), 'city', str(user_tg))
+    to_DB(str(age), 'age', str(user_tg))
     await update.message.reply_text(
-        "Спасибо. Регистрация завершена.")
+        "Пожалуйста, напишите что-нибудь о себе(увлечения, хобби, интересы и др.).")
+    return 'info_vk'
+
+
+async def info_vk_response(update, context):
+    hobbies = update.message.text
+    user = update.effective_chat.id
+    to_DB(str(hobbies), 'info', str(user))
+    await update.message.reply_text(
+        "Спасибо, теперь вы зарегестрировали.")
     return ConversationHandler.END
 
 
@@ -248,8 +263,10 @@ async def search(update, context):
 
 
 btn1 = "Регистрация 🧩"
-reply_keyboard = [['/registration', '/search'],
-                  ['/anketa', '/help']]
+reply_keyboard = [
+    ['/anketa', '/help', '/search'],
+    ['/registration', '/registration_vk'],
+]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
 
@@ -272,6 +289,7 @@ def main():
 
         states={
             'vk': [MessageHandler(filters.TEXT & ~filters.COMMAND, vk_id_response)],
+            'info_vk': [MessageHandler(filters.TEXT & ~filters.COMMAND, info_vk_response)]
         },
         fallbacks=[CommandHandler('stop', fourth_response)]
     )
