@@ -1,9 +1,9 @@
-from Сonfig import TOKEN
+from Сonfig import TOKEN, VK_TOKEN
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler, Updater
 # import wget
-import sqlite3
+import sqlite3, vk_api
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -88,6 +88,46 @@ async def help_command(update, context):
 #     file = update.message.photo[0].file_id
 #     obj = context.bot.get_file(file)
 #     obj.download()
+
+
+async def registration_from_vk(update, context):
+    flag = False
+    user = update.effective_chat.id
+    con = sqlite3.connect('Tg-bot-DB.db')
+    cur = con.cursor()
+    result = "SELECT user FROM Profile"
+    res = cur.execute(result).fetchall()
+    for i in range(len(res)):
+        if user in res[i]:
+            print(res[i])
+            print(user in res[i])
+            flag = True
+    if flag is False:
+        con = sqlite3.connect('Tg-bot-DB.db')
+        cur = con.cursor()
+        result = f"INSERT INTO Profile(user) VALUES({user})"
+        res = cur.execute(result)
+        con.commit()
+    await update.message.reply_text(
+        "Пожалуйста, напишите свой id профиля во 'Вконтакте'.(Всё, что после https://vk.com/...)")
+    return 'vk'
+
+
+async def vk_id_response(update, context):
+    # Это ответ на первый вопрос.
+    # Мы можем использовать его во втором вопросе.
+    vk_id = update.message.text
+    user_tg = update.effective_chat.id
+    vk = vk_api.VkApi(token=VK_TOKEN)
+    user = vk.method("users.get", {"user_ids": vk_id})  # вместо 1 подставляете айди нужного юзера
+    fullname = user[0]['first_name'] + ' ' + user[0]['last_name']
+    city = user[0]['town']
+    print(city)
+    to_DB(str(fullname), 'name', str(user_tg))
+    await update.message.reply_text(
+        "Спасибо. Регистрация завершена.")
+    return ConversationHandler.END
+
 
 async def registration(update, context):
     flag = False
@@ -216,8 +256,6 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
 
 
-
-
 def main():
     application = Application.builder().token(TOKEN).build()
     conv_handler = ConversationHandler(
@@ -231,6 +269,14 @@ def main():
         },
         fallbacks=[CommandHandler('stop', fourth_response)]
     )
+    vk_handler = ConversationHandler(
+        entry_points=[CommandHandler('registration_vk', registration_from_vk)],
+
+        states={
+            'vk': [MessageHandler(filters.TEXT & ~filters.COMMAND, vk_id_response)],
+        },
+        fallbacks=[CommandHandler('stop', fourth_response)]
+    )
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("search", search))
@@ -238,6 +284,7 @@ def main():
     application.add_handler(CommandHandler("close", close))
     application.add_handler(CommandHandler("open", open))
     application.add_handler(conv_handler)
+    application.add_handler(vk_handler)
     application.run_polling()
 
 
