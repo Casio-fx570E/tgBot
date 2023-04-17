@@ -121,8 +121,6 @@ async def vk_id_response(update, context):
     vk = vk_api.VkApi(token=VK_TOKEN)
     user = vk.method("users.get", {"user_ids": vk_id})  # вместо 1 подставляете айди нужного юзера
     fullname = user[0]['first_name'] + ' ' + user[0]['last_name']
-    city = user[0]['town']
-    print(city)
     to_DB(str(fullname), 'name', str(user_tg))
     await update.message.reply_text(
         "Спасибо. Регистрация завершена.")
