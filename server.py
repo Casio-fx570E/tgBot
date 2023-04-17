@@ -80,7 +80,7 @@ async def help_command(update, context):
     else:
         await update.message.reply_text(
             "Здравствуйте, я бот знакомств. Здесь вы можете найти себе знакомства, заполнив анкету."
-            "Для начала напишите /registration, если вы захотите убрать кнопки напишите - /close",
+            "Для начала напишите /registration или /registration_vk, если вы захотите убрать кнопки напишите - /close, чтоб вернуть /open",
             reply_markup=markup)
 
 
