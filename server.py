@@ -4,6 +4,7 @@ import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler, Updater
 # import wget
 import sqlite3, vk_api
+import random
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -258,6 +259,10 @@ async def open(update, context):
 
 async def search(update, context):
     age1 = 0
+    k = 0
+    list_anketa = []
+    list_age = []
+    list_k = []
     id = update.effective_chat.id
     connect = sqlite3.connect('Tg-bot-DB.db')
     cur = connect.cursor()
@@ -269,18 +274,25 @@ async def search(update, context):
     res2 = f"""SELECT * FROM Profile
                 WHERE {age1} = age and {id} != user"""
     resultat2 = cur.execute(res2).fetchall()
+    for i in resultat2:
+        list_age.append(i[0])
+        k += 1
+        list_k.append(k)
     for elem in resultat2:
-        id2 = elem[0]
         name = elem[1]
         age = elem[2]
         city = elem[3]
         hobby = elem[4]
-        await update.message.reply_text(
-             f"{name}, {age1}, {city}, {hobby}, {id}")
-
-            # await update.message.reply_text(
-            #     f"{name} {age} {age1} {elem}")
-            # break
+        dlin = len(list_age)
+        anket = 'Имя - ' + str(name) + '\n' + 'Возраст - ' +  str(age) + '\n' + 'Город - ' + str(city) + '\n' + 'Хобби - ' + str(hobby)
+        k += 1
+        anket2 = anket + str(dlin)
+        randoms = random.choice(list_k)
+        while int(str(randoms)[0]) == int(anket2[-1]):
+            list_anketa.append(anket2[0:-1])
+            await update.message.reply_text(
+                   f"{list_anketa[0]}")
+            break
 
 async def check_id(update, context):
     id = update.effective_chat.id
