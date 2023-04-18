@@ -224,7 +224,6 @@ async def fifth_response(update, context):
     return ConversationHandler.END  # Константа, означающая конец диалога.
     # Все обработчики из states и fallbacks становятся неактивными.
 
-
 async def anketa(update, context):
     id = update.effective_chat.id
     connect = sqlite3.connect('Tg-bot-DB.db')
@@ -252,14 +251,41 @@ async def close(update, context):
 
 async def open(update, context):
     await update.message.reply_text(
-        'Клавиатура открыта ⬆️',
+        f'Клавиатура открыта ⬆️',
         reply_markup=markup
     )
 
 
 async def search(update, context):
-    await update.message.reply_text(
-        "Поиск собеседника.")
+    age1 = 0
+    id = update.effective_chat.id
+    connect = sqlite3.connect('Tg-bot-DB.db')
+    cur = connect.cursor()
+    res = f"""SELECT * FROM Profile"""
+    resultat = cur.execute(res).fetchall()
+    for i in resultat:
+        if id == i[0]:
+            age1 += i[2]
+    res2 = f"""SELECT * FROM Profile
+                WHERE {age1} = age and {id} != user"""
+    resultat2 = cur.execute(res2).fetchall()
+    for elem in resultat2:
+        id2 = elem[0]
+        name = elem[1]
+        age = elem[2]
+        city = elem[3]
+        hobby = elem[4]
+        await update.message.reply_text(
+             f"{name}, {age1}, {city}, {hobby}, {id}")
+
+            # await update.message.reply_text(
+            #     f"{name} {age} {age1} {elem}")
+            # break
+
+async def check_id(update, context):
+    id = update.effective_chat.id
+    await update.message.reply_text(id)
+
 
 
 btn1 = "Регистрация 🧩"
@@ -299,6 +325,7 @@ def main():
     application.add_handler(CommandHandler("anketa", anketa))
     application.add_handler(CommandHandler("close", close))
     application.add_handler(CommandHandler("open", open))
+    application.add_handler(CommandHandler("check_id", check_id))
     application.add_handler(conv_handler)
     application.add_handler(vk_handler)
     application.run_polling()
