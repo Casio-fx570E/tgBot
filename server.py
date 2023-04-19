@@ -227,7 +227,7 @@ async def fifth_response(update, context):
 
 async def anketa(update, context):
     id = update.effective_chat.id
-    f = context.bot.send_document(document=open(f"photo/Files{id}.jpg" + update.effective_chat.id, 'rb'))
+    # f = context.bot.send_document(document=open(f"photo/Files{id}.jpg" + update.effective_chat.id, 'rb'))
     connect = sqlite3.connect('Tg-bot-DB.db')
     cur = connect.cursor()
     res = f"""SELECT * FROM Profile " \
@@ -240,7 +240,6 @@ async def anketa(update, context):
             f'Ваш возраст: {elem[2]} 🌸 \n'
             f'Ваш город: {elem[3]} 🌇 \n'
             f'Ваше хобби: {elem[4]} 🪃 \n'
-            # f'Ваше фото: {f}'
             f'Желаете что-то изменить?',
             reply_markup=markup)
 
