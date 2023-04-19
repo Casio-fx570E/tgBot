@@ -5,6 +5,7 @@ from telegram.ext import Application, MessageHandler, filters, CommandHandler, C
 # import wget
 import sqlite3, vk_api
 import random
+import tracemalloc
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -150,13 +151,13 @@ async def registration(update, context):
     cur = con.cursor()
     result = "SELECT user FROM Profile"
     res = cur.execute(result).fetchall()
-    print(user)
-    print(res)
-    print(user not in res[0])
+    # print(user)
+    # print(res)
+    # print(user not in res[0])
     for i in range(len(res)):
         if user in res[i]:
-            print(res[i])
-            print(user in res[i])
+            # print(res[i])
+            # print(user in res[i])
             flag = True
     if flag is False:
         con = sqlite3.connect('Tg-bot-DB.db')
@@ -210,23 +211,23 @@ async def fourth_response(update, context):
     name = update.message.text
     user = update.effective_chat.id
     to_DB(str(name), 'name', str(user))
-    await update.message.reply_text(f"Регистрация успешно пройдена!")
-    return ConversationHandler.END
+    return 5
 
 
 async def fifth_response(update, context):
-    # Ответ на третий вопрос.
-    # Мы можем его сохранить в базе данных или переслать куда-либо.
-    file = update.message.photo[-1].file_id
-    # obj = context.get_file(file)
-    # obj.download()
-    otvet1.append(file)
+
+    user = update.effective_chat.id
+    file_id = update.message.photo[-1].file_id
+    new_file = await context.bot.get_file(file_id)
+    await new_file.download_to_drive(f'photo/Files{user}.jpg')
     await update.message.reply_text(f"Регистрация успешно пройдена!")
     return ConversationHandler.END  # Константа, означающая конец диалога.
     # Все обработчики из states и fallbacks становятся неактивными.
 
+
 async def anketa(update, context):
     id = update.effective_chat.id
+    f = context.bot.send_document(document=open(f"photo/Files{id}.jpg" + update.effective_chat.id, 'rb'))
     connect = sqlite3.connect('Tg-bot-DB.db')
     cur = connect.cursor()
     res = f"""SELECT * FROM Profile " \
@@ -239,6 +240,7 @@ async def anketa(update, context):
             f'Ваш возраст: {elem[2]} 🌸 \n'
             f'Ваш город: {elem[3]} 🌇 \n'
             f'Ваше хобби: {elem[4]} 🪃 \n'
+            # f'Ваше фото: {f}'
             f'Желаете что-то изменить?',
             reply_markup=markup)
 
@@ -258,41 +260,45 @@ async def open(update, context):
 
 
 async def search(update, context):
-    age1 = 0
-    k = 0
-    list_anketa = []
-    list_age = []
-    list_k = []
+    age = 0
+    spisok = []
+    spisok1 = []
+    city = str()
     id = update.effective_chat.id
     connect = sqlite3.connect('Tg-bot-DB.db')
     cur = connect.cursor()
     res = f"""SELECT * FROM Profile"""
+    res_age = f"""SELECT age, city FROM Profile
+                    WHERE {id} = user"""
+    resultat_age = cur.execute(res_age).fetchall()
     resultat = cur.execute(res).fetchall()
-    for i in resultat:
-        if id == i[0]:
-            age1 += i[2]
-    res2 = f"""SELECT * FROM Profile
-                WHERE {age1} = age and {id} != user"""
-    resultat2 = cur.execute(res2).fetchall()
-    for i in resultat2:
-        list_age.append(i[0])
-        k += 1
-        list_k.append(k)
-    for elem in resultat2:
-        name = elem[1]
-        age = elem[2]
-        city = elem[3]
-        hobby = elem[4]
-        dlin = len(list_age)
-        anket = 'Имя - ' + str(name) + '\n' + 'Возраст - ' +  str(age) + '\n' + 'Город - ' + str(city) + '\n' + 'Хобби - ' + str(hobby)
-        k += 1
-        anket2 = anket + str(dlin)
-        randoms = random.choice(list_k)
-        while int(str(randoms)[0]) == int(anket2[-1]):
-            list_anketa.append(anket2[0:-1])
-            await update.message.reply_text(
-                   f"{list_anketa[0]}")
+    for i in resultat_age:
+        age = i[0]
+        city = i[1]
+    for elem in range(len(resultat)):
+        if age in resultat[elem] and id not in resultat[elem]:
+            spisok.append(elem)
+        elif city in resultat[elem] and id not in resultat[elem]:
+            spisok1.append(elem)
+    for elem in range(len(resultat)):
+        if age in resultat[elem] and id not in resultat[elem]:
+            randoms = random.choice(spisok)
+            await update.message.reply_text(f'🎋 Анкеты потенциальных друзей 🎋\n'
+                                            f'Имя 🏷: {resultat[randoms][1]} \n'
+                                            f'Возраст 🧬: {resultat[randoms][2]} \n'
+                                            f'Город 🌆: {resultat[randoms][3]} \n'
+                                            f'Хобби 🤿: {resultat[randoms][4]}. \n')
             break
+        elif city in resultat[elem] and id not in resultat[elem]:
+            randoms = random.choice(spisok1)
+            await update.message.reply_text(f'🎋 Анкеты потенциальных друзей 🎋\n'
+                                            f'Имя 🏷: {resultat[randoms][1]} \n'
+                                            f'Возраст 🧬: {resultat[randoms][2]} \n'
+                                            f'Город 🌆: {resultat[randoms][3]} \n'
+                                            f'Хобби 🤿: {resultat[randoms][4]}. \n')
+            break
+
+
 
 async def check_id(update, context):
     id = update.effective_chat.id
@@ -318,9 +324,10 @@ def main():
             1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response)],
             2: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response)],
             3: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response)],
-            4: [MessageHandler(filters.TEXT & ~filters.COMMAND, fourth_response)]
+            4: [MessageHandler(filters.TEXT & ~filters.COMMAND, fourth_response)],
+            5: [MessageHandler(filters.PHOTO & ~filters.COMMAND, fifth_response)]
         },
-        fallbacks=[CommandHandler('stop', fourth_response)]
+        fallbacks=[CommandHandler('stop', fifth_response)]
     )
     vk_handler = ConversationHandler(
         entry_points=[CommandHandler('registration_vk', registration_from_vk)],
@@ -329,7 +336,7 @@ def main():
             'vk': [MessageHandler(filters.TEXT & ~filters.COMMAND, vk_id_response)],
             'info_vk': [MessageHandler(filters.TEXT & ~filters.COMMAND, info_vk_response)]
         },
-        fallbacks=[CommandHandler('stop', fourth_response)]
+        fallbacks=[CommandHandler('stop', fifth_response)]
     )
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
