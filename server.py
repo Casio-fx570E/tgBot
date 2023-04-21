@@ -12,6 +12,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+global friend
 
 # Определяем функцию-обработчик сообщений.
 # У неё два параметра, updater, принявший сообщение и контекст - дополнительная информация о сообщении.
@@ -55,6 +56,13 @@ def to_DB(name, what_to_add, user):
         con = sqlite3.connect('Tg-bot-DB.db')
         cur = con.cursor()
         result = "UPDATE Profile SET name = '" + name + "' WHERE user =" + user
+        res = cur.execute(result)
+        con.commit()
+        con.close()
+    elif what_to_add == 'username':
+        con = sqlite3.connect('Tg-bot-DB.db')
+        cur = con.cursor()
+        result = "UPDATE Profile SET username = '" + name + "' WHERE user =" + user
         res = cur.execute(result)
         con.commit()
         con.close()
@@ -175,8 +183,10 @@ async def registration(update, context):
 async def first_response(update, context):
     # Это ответ на первый вопрос.
     # Мы можем использовать его во втором вопросе.
+    username = update.effective_user.name
     city = update.message.text
     user = update.effective_chat.id
+    to_DB(str(username), 'username', str(user))
     to_DB(str(city), 'city', str(user))
     await update.message.reply_text(
         f"Сколько вам лет?")
@@ -215,7 +225,6 @@ async def fourth_response(update, context):
 
 
 async def fifth_response(update, context):
-
     user = update.effective_chat.id
     file_id = update.message.photo[-1].file_id
     new_file = await context.bot.get_file(file_id)
@@ -259,6 +268,7 @@ async def open(update, context):
 
 
 async def search(update, context):
+    global friend
     age = 0
     spisok = []
     spisok1 = []
@@ -268,7 +278,7 @@ async def search(update, context):
     cur = connect.cursor()
     res = f"""SELECT * FROM Profile"""
     res_age = f"""SELECT age, city FROM Profile
-                    WHERE {id} = user"""
+                        WHERE {id} = user"""
     resultat_age = cur.execute(res_age).fetchall()
     resultat = cur.execute(res).fetchall()
     for i in resultat_age:
@@ -286,7 +296,8 @@ async def search(update, context):
                                             f'Имя 🏷: {resultat[randoms][1]} \n'
                                             f'Возраст 🧬: {resultat[randoms][2]} \n'
                                             f'Город 🌆: {resultat[randoms][3]} \n'
-                                            f'Хобби 🤿: {resultat[randoms][4]}. \n')
+                                            f'Хобби 🤿: {resultat[randoms][4]}. \n', reply_markup=markup_2)
+            friend = resultat[randoms][5]
             break
         elif city in resultat[elem] and id not in resultat[elem]:
             randoms = random.choice(spisok1)
@@ -294,9 +305,25 @@ async def search(update, context):
                                             f'Имя 🏷: {resultat[randoms][1]} \n'
                                             f'Возраст 🧬: {resultat[randoms][2]} \n'
                                             f'Город 🌆: {resultat[randoms][3]} \n'
-                                            f'Хобби 🤿: {resultat[randoms][4]}. \n')
+                                            f'Хобби 🤿: {resultat[randoms][4]}. \n', reply_markup=markup_2)
+            friend = resultat[randoms][5]
             break
+    return 'searches'
 
+
+async def search_second(update, context):
+    answer = update.message.text
+    if answer == '👍':
+        global friend
+        await update.message.reply_text(f'Отлично, желаем вам удачи в общении! Вот ваш собеседник:{friend}')
+        return ConversationHandler.END
+    if answer == '👎':
+        await update.message.reply_text('Для просмотра следующей анкеты, отправьте любое сообщение :)!')
+        return 'ok'
+
+
+async def stop():
+    pass
 
 
 async def check_id(update, context):
@@ -304,14 +331,18 @@ async def check_id(update, context):
     await update.message.reply_text(id)
 
 
-
 btn1 = "Регистрация 🧩"
 reply_keyboard = [
     ['/anketa', '/help', '/search'],
     ['/registration', '/registration_vk'],
 ]
+reply_keyboard_2 = [['👍',
+                     '👎']
+                    ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markdown = ReplyKeyboardRemove()
+markup_2 = ReplyKeyboardMarkup(reply_keyboard_2, one_time_keyboard=False)
+markdown_2 = ReplyKeyboardRemove()
 
 
 def main():
@@ -326,7 +357,7 @@ def main():
             4: [MessageHandler(filters.TEXT & ~filters.COMMAND, fourth_response)],
             5: [MessageHandler(filters.PHOTO & ~filters.COMMAND, fifth_response)]
         },
-        fallbacks=[CommandHandler('stop', fifth_response)]
+        fallbacks=[CommandHandler('stop', stop)]
     )
     vk_handler = ConversationHandler(
         entry_points=[CommandHandler('registration_vk', registration_from_vk)],
@@ -335,17 +366,26 @@ def main():
             'vk': [MessageHandler(filters.TEXT & ~filters.COMMAND, vk_id_response)],
             'info_vk': [MessageHandler(filters.TEXT & ~filters.COMMAND, info_vk_response)]
         },
-        fallbacks=[CommandHandler('stop', fifth_response)]
+        fallbacks=[CommandHandler('stop', stop)]
+    )
+    search_handler = ConversationHandler(
+        entry_points=[CommandHandler('search', search)],
+
+        states={
+            'searches': [MessageHandler(filters.TEXT & ~filters.COMMAND, search_second)],
+            'ok': [MessageHandler(filters.TEXT & ~filters.COMMAND, search)]
+        },
+        fallbacks=[CommandHandler('stop', stop)]
     )
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("search", search))
     application.add_handler(CommandHandler("anketa", anketa))
     application.add_handler(CommandHandler("close", close))
     application.add_handler(CommandHandler("open", open))
     application.add_handler(CommandHandler("check_id", check_id))
     application.add_handler(conv_handler)
     application.add_handler(vk_handler)
+    application.add_handler(search_handler)
     application.run_polling()
 
 
