@@ -127,6 +127,7 @@ async def vk_id_response(update, context):
     # Это ответ на первый вопрос.
     # Мы можем использовать его во втором вопросе.
     vk_id = update.message.text
+    username = update.effective_user.name
     user_tg = update.effective_chat.id
     vk = vk_api.VkApi(token=VK_TOKEN)
     user = vk.method("users.get", {"user_ids": vk_id})  # вместо 1 подставляете айди нужного юзера
@@ -134,12 +135,16 @@ async def vk_id_response(update, context):
     user_city = vk.method("users.get", {"fields": {"city": vk_id}})
     city = user_city[0]['city']['title']
     user_bdate = vk.method('users.get', {"fields": {"bdate": vk_id}})
+    image = vk.method("users.get", {"user_ids": vk_id, "fields": ["photo_max_orig"]})
+    imageLink = image[0]['photo_max_orig']
+    print(imageLink)
     age = 2023 - int(str(user_bdate[0]['bdate']).split('.')[2])
+    to_DB(str(username), 'username', str(user_tg))
     to_DB(str(fullname), 'name', str(user_tg))
     to_DB(str(city), 'city', str(user_tg))
     to_DB(str(age), 'age', str(user_tg))
     await update.message.reply_text(
-        "Пожалуйста, напишите что-нибудь о себе(увлечения, хобби, интересы и др.).")
+        f"Пожалуйста, напишите что-нибудь о себе(увлечения, хобби, интересы и др.).")
     return 'info_vk'
 
 
