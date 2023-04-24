@@ -226,7 +226,8 @@ async def fourth_response(update, context):
     name = update.message.text
     user = update.effective_chat.id
     to_DB(str(name), 'name', str(user))
-    return 5
+    await update.message.reply_text(f"Регистрация успешно пройдена!")
+    return ConversationHandler.END
 
 
 async def fifth_response(update, context):
@@ -320,15 +321,15 @@ async def search_second(update, context):
     answer = update.message.text
     if answer == '👍':
         global friend
-        await update.message.reply_text(f'Отлично, желаем вам удачи в общении! Вот ваш собеседник:{friend}')
+        await update.message.reply_text(f'Отлично, желаем вам удачи в общении! Вот ваш собеседник: {friend}')
         return ConversationHandler.END
-    if answer == '👎':
-        await update.message.reply_text('Для просмотра следующей анкеты, отправьте любое сообщение :)!')
+    elif answer == '👎':
+        await update.message.reply_text("Для просмотра следующей анкеты, отправьте любое сообщение :)!")
         return 'ok'
 
 
-async def stop():
-    pass
+async def stop(update, context):
+    await update.message.reply_text("Диалог окончен.")
 
 
 async def check_id(update, context):
